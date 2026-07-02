@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculateur de prêt immobilier gratuit — Atelier</title>
+<meta name="description" content="Calculez votre mensualité de prêt immobilier, le coût total du crédit et consultez un tableau d'amortissement simplifié.">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="../index.html" class="brand"><span class="brand-mark">A</span>Atelier</a>
+    <nav class="crumbs"><a href="../index.html#outils">Tous les outils</a></nav>
+  </div>
+</header>
+
+<main class="container tool-page">
+  <div class="tool-header">
+    <span class="eyebrow">Finance</span>
+    <h1>Calculateur de prêt immobilier</h1>
+    <p>Estimez votre mensualité et le coût total de votre crédit. Résultat purement indicatif — hors assurance et frais de dossier.</p>
+  </div>
+
+  <div class="panel">
+    <div class="row">
+      <div>
+        <label for="amount">Montant emprunté (€)</label>
+        <input type="number" id="amount" value="200000">
+      </div>
+      <div>
+        <label for="rate">Taux d'intérêt annuel (%)</label>
+        <input type="number" id="rate" value="3.5" step="0.01">
+      </div>
+      <div>
+        <label for="duration">Durée (années)</label>
+        <input type="number" id="duration" value="20">
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:24px;">
+      <div>
+        <div class="eyebrow">Mensualité</div>
+        <div class="result-big"><span id="monthly">—</span> <span class="unit">€/mois</span></div>
+      </div>
+      <div>
+        <div class="eyebrow">Coût total du crédit</div>
+        <div class="result-big"><span id="totalCost">—</span> <span class="unit">€</span></div>
+      </div>
+      <div>
+        <div class="eyebrow">Total remboursé</div>
+        <div class="result-big"><span id="totalPaid">—</span> <span class="unit">€</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ad-slot">Emplacement publicitaire</div>
+
+  <p class="footnote">Cette simulation ne remplace pas une offre de prêt personnalisée délivrée par une banque ou un courtier. Le taux d'assurance emprunteur et les frais de dossier ne sont pas inclus dans ce calcul.</p>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>Atelier — outils gratuits, 2026.</span>
+    <span><a href="../index.html#outils">Tous les outils</a></span>
+  </div>
+</footer>
+
+<script>
+const amount = document.getElementById('amount');
+const rate = document.getElementById('rate');
+const duration = document.getElementById('duration');
+
+function calc() {
+  const P = parseFloat(amount.value);
+  const annualRate = parseFloat(rate.value) / 100;
+  const years = parseFloat(duration.value);
+
+  if (!P || !annualRate || !years) return;
+
+  const monthlyRate = annualRate / 12;
+  const n = years * 12;
+  const monthly = P * monthlyRate / (1 - Math.pow(1 + monthlyRate, -n));
+  const totalPaid = monthly * n;
+  const totalCost = totalPaid - P;
+
+  document.getElementById('monthly').textContent = formatNum(monthly);
+  document.getElementById('totalCost').textContent = formatNum(totalCost);
+  document.getElementById('totalPaid').textContent = formatNum(totalPaid);
+}
+
+function formatNum(n) {
+  return n.toLocaleString('fr-FR', { maximumFractionDigits: 0 });
+}
+
+[amount, rate, duration].forEach(el => el.addEventListener('input', calc));
+calc();
+</script>
+
+</body>
+</html>

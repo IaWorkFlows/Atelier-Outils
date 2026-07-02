@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculateur salaire net / brut gratuit — Atelier</title>
+<meta name="description" content="Convertissez votre salaire brut en net et inversement, pour un salarié du secteur privé en France. Estimation indicative.">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="../index.html" class="brand"><span class="brand-mark">A</span>Atelier</a>
+    <nav class="crumbs"><a href="../index.html#outils">Tous les outils</a></nav>
+  </div>
+</header>
+
+<main class="container tool-page">
+  <div class="tool-header">
+    <span class="eyebrow">Finance</span>
+    <h1>Calculateur salaire net / brut</h1>
+    <p>Estimation pour un salarié non-cadre du secteur privé en France, hors mutuelle et cas particuliers.</p>
+  </div>
+
+  <div class="panel">
+    <label for="direction">Je connais mon salaire…</label>
+    <select id="direction">
+      <option value="toNet">Brut → Net</option>
+      <option value="toGross">Net → Brut</option>
+    </select>
+
+    <div class="row">
+      <div>
+        <label for="salary">Montant mensuel (€)</label>
+        <input type="number" id="salary" value="2500">
+      </div>
+      <div>
+        <label for="status">Statut</label>
+        <select id="status">
+          <option value="0.23">Non-cadre (≈23% de charges)</option>
+          <option value="0.25">Cadre (≈25% de charges)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="output" id="result" aria-live="polite">—</div>
+  </div>
+
+  <div class="ad-slot">Emplacement publicitaire</div>
+
+  <p class="footnote">Estimation basée sur un taux moyen de charges sociales salariales. Le taux réel dépend de la convention collective, du statut exact et de la situation personnelle. Ce calcul ne remplace pas un bulletin de paie officiel.</p>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>Atelier — outils gratuits, 2026.</span>
+    <span><a href="../index.html#outils">Tous les outils</a></span>
+  </div>
+</footer>
+
+<script>
+const direction = document.getElementById('direction');
+const salary = document.getElementById('salary');
+const status = document.getElementById('status');
+const result = document.getElementById('result');
+
+function calc() {
+  const val = parseFloat(salary.value);
+  const rate = parseFloat(status.value);
+  if (!val) { result.textContent = '—'; return; }
+
+  if (direction.value === 'toNet') {
+    const net = val * (1 - rate);
+    result.textContent = val.toLocaleString('fr-FR') + ' € brut ≈ ' + net.toLocaleString('fr-FR', {maximumFractionDigits: 0}) + ' € net par mois';
+  } else {
+    const gross = val / (1 - rate);
+    result.textContent = val.toLocaleString('fr-FR') + ' € net ≈ ' + gross.toLocaleString('fr-FR', {maximumFractionDigits: 0}) + ' € brut par mois';
+  }
+}
+
+[direction, salary, status].forEach(el => el.addEventListener('input', calc));
+calc();
+</script>
+
+</body>
+</html>

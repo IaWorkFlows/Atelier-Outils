@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Compresseur d'images gratuit en ligne — Atelier</title>
+<meta name="description" content="Réduisez le poids de vos images JPG et PNG directement dans votre navigateur, sans envoi sur un serveur.">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="../index.html" class="brand"><span class="brand-mark">A</span>Atelier</a>
+    <nav class="crumbs"><a href="../index.html#outils">Tous les outils</a></nav>
+  </div>
+</header>
+
+<main class="container tool-page">
+  <div class="tool-header">
+    <span class="eyebrow">Image</span>
+    <h1>Compresseur d'images</h1>
+    <p>Votre image est traitée localement dans le navigateur — elle n'est jamais envoyée sur un serveur.</p>
+  </div>
+
+  <div class="panel">
+    <div class="dropzone" id="dropzone">Glissez une image ici, ou cliquez pour en choisir une (JPG, PNG)</div>
+    <input type="file" id="fileInput" accept="image/png, image/jpeg" style="display:none">
+
+    <label for="quality">Qualité : <span id="qualityVal">70</span>%</label>
+    <input type="range" id="quality" min="10" max="95" value="70">
+
+    <table class="compress-table" id="statsTable" style="display:none;">
+      <tr><th>Taille d'origine</th><td id="origSize">—</td></tr>
+      <tr><th>Taille compressée</th><td id="newSize">—</td></tr>
+      <tr><th>Réduction</th><td id="reduction">—</td></tr>
+    </table>
+
+    <div class="actions">
+      <button class="secondary" id="downloadBtn" style="display:none;">Télécharger l'image compressée</button>
+    </div>
+  </div>
+
+  <div class="ad-slot">Emplacement publicitaire</div>
+
+  <p class="footnote">Le format JPG se compresse mieux pour les photos ; le format PNG conserve la transparence mais reste plus lourd.</p>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>Atelier — outils gratuits, 2026.</span>
+    <span><a href="../index.html#outils">Tous les outils</a></span>
+  </div>
+</footer>
+
+<script>
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+const quality = document.getElementById('quality');
+const qualityVal = document.getElementById('qualityVal');
+const statsTable = document.getElementById('statsTable');
+const downloadBtn = document.getElementById('downloadBtn');
+let currentFile = null;
+let compressedDataUrl = null;
+let compressedType = 'image/jpeg';
+
+dropzone.addEventListener('click', () => fileInput.click());
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropzone.classList.remove('drag');
+  if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', () => { if (fileInput.files.length) handleFile(fileInput.files[0]); });
+quality.addEventListener('input', () => { qualityVal.textContent = quality.value; if (currentFile) processImage(); });
+
+function handleFile(file) {
+  if (!file.type.match(/image\/(jpeg|png)/)) {
+    dropzone.textContent = 'Format non supporté. Utilisez un JPG ou un PNG.';
+    return;
+  }
+  currentFile = file;
+  processImage();
+}
+
+function processImage() {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+
+      compressedType = currentFile.type === 'image/png' ? 'image/png' : 'image/jpeg';
+      const q = parseInt(quality.value, 10) / 100;
+      compressedDataUrl = canvas.toDataURL(compressedType, q);
+
+      const origSize = currentFile.size;
+      const newSize = Math.round((compressedDataUrl.length - 'data:image/jpeg;base64,'.length) * 0.75);
+
+      document.getElementById('origSize').textContent = formatBytes(origSize);
+      document.getElementById('newSize').textContent = formatBytes(newSize);
+      const pct = Math.max(0, Math.round((1 - newSize / origSize) * 100));
+      document.getElementById('reduction').textContent = pct + '%';
+      statsTable.style.display = '';
+      downloadBtn.style.display = '';
+      dropzone.textContent = currentFile.name + ' — chargé';
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(currentFile);
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return bytes + ' o';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' Ko';
+  return (bytes / (1024 * 1024)).toFixed(2) + ' Mo';
+}
+
+downloadBtn.addEventListener('click', () => {
+  if (!compressedDataUrl) return;
+  const link = document.createElement('a');
+  link.download = 'image-compressee.' + (compressedType === 'image/png' ? 'png' : 'jpg');
+  link.href = compressedDataUrl;
+  link.click();
+});
+</script>
+
+</body>
+</html>

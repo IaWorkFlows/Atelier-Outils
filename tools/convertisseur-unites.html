@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Convertisseur d'unités gratuit — Atelier</title>
+<meta name="description" content="Convertissez longueurs, poids, températures et volumes instantanément, gratuitement et sans inscription.">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="../index.html" class="brand"><span class="brand-mark">A</span>Atelier</a>
+    <nav class="crumbs"><a href="../index.html#outils">Tous les outils</a></nav>
+  </div>
+</header>
+
+<main class="container tool-page">
+  <div class="tool-header">
+    <span class="eyebrow">Calcul</span>
+    <h1>Convertisseur d'unités</h1>
+    <p>Choisissez une catégorie, saisissez une valeur, la conversion se fait en direct.</p>
+  </div>
+
+  <div class="panel">
+    <label for="category">Catégorie</label>
+    <select id="category">
+      <option value="length">Longueur</option>
+      <option value="weight">Poids</option>
+      <option value="temperature">Température</option>
+      <option value="volume">Volume</option>
+    </select>
+
+    <div class="row">
+      <div>
+        <label for="fromVal">Valeur</label>
+        <input type="number" id="fromVal" value="1">
+      </div>
+      <div>
+        <label for="fromUnit">De</label>
+        <select id="fromUnit"></select>
+      </div>
+      <div>
+        <label for="toUnit">Vers</label>
+        <select id="toUnit"></select>
+      </div>
+    </div>
+
+    <div class="output" id="result" aria-live="polite">—</div>
+  </div>
+
+  <div class="ad-slot">Emplacement publicitaire</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>Atelier — outils gratuits, 2026.</span>
+    <span><a href="../index.html#outils">Tous les outils</a></span>
+  </div>
+</footer>
+
+<script>
+const units = {
+  length: {
+    label: 'Longueur',
+    base: { m: 1, km: 1000, cm: 0.01, mm: 0.001, mile: 1609.34, yard: 0.9144, foot: 0.3048, inch: 0.0254 },
+    names: { m: 'Mètres', km: 'Kilomètres', cm: 'Centimètres', mm: 'Millimètres', mile: 'Miles', yard: 'Yards', foot: 'Pieds', inch: 'Pouces' }
+  },
+  weight: {
+    label: 'Poids',
+    base: { kg: 1, g: 0.001, mg: 0.000001, tonne: 1000, lb: 0.453592, oz: 0.0283495 },
+    names: { kg: 'Kilogrammes', g: 'Grammes', mg: 'Milligrammes', tonne: 'Tonnes', lb: 'Livres', oz: 'Onces' }
+  },
+  volume: {
+    label: 'Volume',
+    base: { l: 1, ml: 0.001, m3: 1000, gallon: 3.78541, pint: 0.473176 },
+    names: { l: 'Litres', ml: 'Millilitres', m3: 'Mètres cubes', gallon: 'Gallons (US)', pint: 'Pintes (US)' }
+  },
+  temperature: {
+    label: 'Température',
+    names: { c: 'Celsius', f: 'Fahrenheit', k: 'Kelvin' }
+  }
+};
+
+const category = document.getElementById('category');
+const fromUnit = document.getElementById('fromUnit');
+const toUnit = document.getElementById('toUnit');
+const fromVal = document.getElementById('fromVal');
+const result = document.getElementById('result');
+
+function populateUnits() {
+  const cat = units[category.value];
+  fromUnit.innerHTML = '';
+  toUnit.innerHTML = '';
+  Object.keys(cat.names).forEach((key, i) => {
+    const opt1 = new Option(cat.names[key], key);
+    const opt2 = new Option(cat.names[key], key);
+    fromUnit.add(opt1);
+    toUnit.add(opt2);
+  });
+  toUnit.selectedIndex = 1;
+  convert();
+}
+
+function convertTemp(value, from, to) {
+  let celsius;
+  if (from === 'c') celsius = value;
+  else if (from === 'f') celsius = (value - 32) * 5/9;
+  else celsius = value - 273.15;
+
+  if (to === 'c') return celsius;
+  if (to === 'f') return celsius * 9/5 + 32;
+  return celsius + 273.15;
+}
+
+function convert() {
+  const cat = category.value;
+  const val = parseFloat(fromVal.value);
+  if (isNaN(val)) { result.textContent = '—'; return; }
+
+  let output;
+  if (cat === 'temperature') {
+    output = convertTemp(val, fromUnit.value, toUnit.value);
+  } else {
+    const data = units[cat].base;
+    const inBase = val * data[fromUnit.value];
+    output = inBase / data[toUnit.value];
+  }
+  result.textContent = val + ' ' + units[cat].names[fromUnit.value] + ' = ' + (Math.round(output * 100000) / 100000) + ' ' + units[cat].names[toUnit.value];
+}
+
+category.addEventListener('change', populateUnits);
+[fromVal, fromUnit, toUnit].forEach(el => el.addEventListener('input', convert));
+
+populateUnits();
+</script>
+
+</body>
+</html>

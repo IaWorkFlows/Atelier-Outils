@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Générateur de mot de passe sécurisé et gratuit — Atelier</title>
+<meta name="description" content="Générez un mot de passe fort et aléatoire. Longueur et caractères personnalisables, aucune donnée envoyée sur un serveur.">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="../index.html" class="brand"><span class="brand-mark">A</span>Atelier</a>
+    <nav class="crumbs"><a href="../index.html#outils">Tous les outils</a></nav>
+  </div>
+</header>
+
+<main class="container tool-page">
+  <div class="tool-header">
+    <span class="eyebrow">Sécurité</span>
+    <h1>Générateur de mot de passe</h1>
+    <p>Un mot de passe fort est généré directement dans votre navigateur. Rien n'est transmis ni stocké.</p>
+  </div>
+
+  <div class="panel">
+    <div class="output" id="pwOutput" aria-live="polite">Cliquez sur « Générer »</div>
+    <div class="strength-meter"><div class="strength-fill" id="strengthFill"></div></div>
+    <p class="footnote" id="strengthLabel"></p>
+
+    <label for="length">Longueur : <span id="lengthVal">16</span> caractères</label>
+    <input type="range" id="length" min="6" max="48" value="16">
+
+    <div class="checks">
+      <label><input type="checkbox" id="upper" checked> Majuscules (A-Z)</label>
+      <label><input type="checkbox" id="lower" checked> Minuscules (a-z)</label>
+      <label><input type="checkbox" id="numbers" checked> Chiffres (0-9)</label>
+      <label><input type="checkbox" id="symbols" checked> Symboles (!@#…)</label>
+      <label><input type="checkbox" id="ambiguous"> Exclure les caractères ambigus (l, 1, O, 0)</label>
+    </div>
+
+    <div class="actions">
+      <button id="generateBtn">Générer</button>
+      <button class="secondary" id="copyBtn">Copier</button>
+    </div>
+  </div>
+
+  <div class="ad-slot">Emplacement publicitaire</div>
+
+  <p class="footnote">Un mot de passe d'au moins 16 caractères mêlant majuscules, minuscules, chiffres et symboles résiste bien mieux aux attaques par force brute. Évitez de réutiliser le même mot de passe sur plusieurs sites.</p>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>Atelier — outils gratuits, 2026.</span>
+    <span><a href="../index.html#outils">Tous les outils</a></span>
+  </div>
+</footer>
+
+<script>
+const lengthInput = document.getElementById('length');
+const lengthVal = document.getElementById('lengthVal');
+const output = document.getElementById('pwOutput');
+const fill = document.getElementById('strengthFill');
+const label = document.getElementById('strengthLabel');
+
+lengthInput.addEventListener('input', () => lengthVal.textContent = lengthInput.value);
+
+function generate() {
+  const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const lower = 'abcdefghijklmnopqrstuvwxyz';
+  const numbers = '0123456789';
+  const symbols = '!@#$%^&*()-_=+[]{};:,.<>?';
+  const ambiguous = 'l1IO0';
+
+  let pool = '';
+  if (document.getElementById('upper').checked) pool += upper;
+  if (document.getElementById('lower').checked) pool += lower;
+  if (document.getElementById('numbers').checked) pool += numbers;
+  if (document.getElementById('symbols').checked) pool += symbols;
+
+  if (document.getElementById('ambiguous').checked) {
+    pool = pool.split('').filter(c => !ambiguous.includes(c)).join('');
+  }
+
+  if (!pool) {
+    output.textContent = 'Sélectionnez au moins un type de caractère.';
+    fill.style.width = '0%';
+    label.textContent = '';
+    return;
+  }
+
+  const len = parseInt(lengthInput.value, 10);
+  const bytes = new Uint32Array(len);
+  crypto.getRandomValues(bytes);
+  let result = '';
+  for (let i = 0; i < len; i++) {
+    result += pool[bytes[i] % pool.length];
+  }
+  output.textContent = result;
+  scoreStrength(result, pool.length);
+}
+
+function scoreStrength(pw, poolSize) {
+  const entropy = Math.log2(poolSize) * pw.length;
+  let pct, color, text;
+  if (entropy < 40) { pct = 25; color = '#B0492E'; text = 'Faible'; }
+  else if (entropy < 60) { pct = 50; color = '#C08829'; text = 'Correct'; }
+  else if (entropy < 80) { pct = 75; color = '#46607A'; text = 'Fort'; }
+  else { pct = 100; color = '#1B2B3A'; text = 'Très fort'; }
+  fill.style.width = pct + '%';
+  fill.style.background = color;
+  label.textContent = 'Robustesse estimée : ' + text + ' (~' + Math.round(entropy) + ' bits d\'entropie)';
+}
+
+document.getElementById('generateBtn').addEventListener('click', generate);
+document.getElementById('copyBtn').addEventListener('click', () => {
+  const text = output.textContent;
+  if (!text || text.startsWith('Cliquez') || text.startsWith('Sélectionnez')) return;
+  navigator.clipboard.writeText(text);
+  const btn = document.getElementById('copyBtn');
+  const original = btn.textContent;
+  btn.textContent = 'Copié !';
+  setTimeout(() => btn.textContent = original, 1200);
+});
+
+generate();
+</script>
+
+</body>
+</html>
